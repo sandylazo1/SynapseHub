@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Synapse Hub | Neurociencia</title>
+    <style>
+        /* === VARIABLES & LIQUID GLASS THEME === */
+        :root {
+            --bg-dark: #070b19;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --glass-highlight: rgba(255, 255, 255, 0.25);
+            --text-light: #e2e8f0;
+            --text-blue: #60a5fa;
+            --accent-blue: #3b82f6;
+            --neon-blue: #0ea5e9;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* --- LIQUID BACKGROUND ANIMATION --- */
+        .ambient-blob {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(100px);
+            z-index: -1;
+            animation: float 20s infinite alternate ease-in-out;
+        }
+        .blob-1 { top: -10%; left: -10%; width: 50vw; height: 50vw; background: rgba(59, 130, 246, 0.4); }
+        .blob-2 { bottom: -20%; right: -10%; width: 60vw; height: 60vw; background: rgba(14, 165, 233, 0.3); animation-delay: -5s; }
+        .blob-3 { top: 40%; left: 30%; width: 40vw; height: 40vw; background: rgba(99, 102, 241, 0.2); animation-delay: -10s; }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(50px, 50px) scale(1.1); }
+        }
+
+        /* --- GLASSMORPHISM UTILS --- */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            padding: 24px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: rgba(7, 11, 25, 0.6);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        header h1 { font-weight: 300; font-size: 1.8rem; letter-spacing: 1px; color: #fff; }
+        
+        button.lang-btn {
+            background: var(--glass-highlight);
+            color: #fff;
+            border: 1px solid var(--glass-border);
+            padding: 8px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        button.lang-btn:hover { background: rgba(255, 255, 255, 0.3); }
+
+        .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; display: flex; flex-direction: column; gap: 40px; }
+        h2 { font-weight: 400; color: var(--text-blue); margin-bottom: 20px; font-size: 1.5rem; display: flex; align-items: center; justify-content: space-between;}
+        .timer-badge { font-size: 0.9rem; background: rgba(59, 130, 246, 0.2); padding: 5px 12px; border-radius: 12px; border: 1px solid var(--accent-blue); color: #fff; }
+
+        /* --- NEWS SECTION (GRID) --- */
+        .news-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+        .news-card {
+            transition: transform 0.3s;
+            cursor: pointer;
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .news-card:hover { transform: translateY(-5px); border-color: var(--glass-highlight); }
+        .news-tag { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-blue); }
+        .news-title { font-size: 1.1rem; font-weight: 500; color: #fff; line-height: 1.4; }
+        .news-desc { font-size: 0.9rem; color: #94a3b8; display: none; margin-top: 10px; }
+        .news-card.expanded .news-desc { display: block; }
+
+        /* --- GAMES SECTION (FRIV STYLE GRID) --- */
+        .games-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; }
+        .game-thumb {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+        }
+        .game-thumb:hover { border-color: #fff; transform: scale(1.05); z-index: 2; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        .game-icon { font-size: 2.5rem; margin-bottom: 10px; font-style: normal; text-shadow: 0 0 10px rgba(255,255,255,0.3); } 
+        .game-name { font-size: 0.95rem; font-weight: 600; color: #fff; padding: 0 10px; }
+        .game-lvl { font-size: 0.75rem; color: rgba(255,255,255,0.7); margin-top: 5px; background: rgba(0,0,0,0.4); padding: 2px 8px; border-radius: 10px;}
+
+        /* --- CHATBOT SECTION --- */
+        .chat-container { display: flex; flex-direction: column; gap: 15px; height: 400px; }
+        .chat-box { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-right: 10px; }
+        .msg { padding: 12px 18px; border-radius: 18px; max-width: 80%; font-size: 0.95rem; line-height: 1.5; }
+        .user-msg { align-self: flex-end; background: var(--accent-blue); color: #fff; border-bottom-right-radius: 4px; }
+        .bot-msg { align-self: flex-start; background: rgba(255,255,255,0.1); border: 1px solid var(--glass-border); border-bottom-left-radius: 4px; color: #f8fafc; }
+        
+        .chat-input-area { display: flex; gap: 10px; }
+        .chat-input-area input {
+            flex: 1; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border);
+            color: #fff; padding: 15px; border-radius: 24px; outline: none; transition: border 0.3s;
+        }
+        .chat-input-area input:focus { border-color: var(--text-blue); }
+        .chat-input-area button {
+            background: var(--text-blue); color: #000; border: none; padding: 0 24px;
+            border-radius: 24px; font-weight: 600; cursor: pointer; transition: opacity 0.3s;
+        }
+        .chat-input-area button:hover { opacity: 0.8; }
+
+        /* --- MODAL (GAME PLAYER) --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.7); backdrop-filter: blur(10px);
+            display: none; justify-content: center; align-items: center; z-index: 100;
+        }
+        .modal-content { width: 90%; max-width: 600px; position: relative; display: flex; flex-direction: column; align-items: center; }
+        .close-btn { position: absolute; top: 15px; right: 20px; background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
+        
+        /* Game specific UI inside modal */
+        #game-render-area { margin-top: 20px; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 20px;}
+        .engine-grid { display: grid; gap: 4px; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 12px; }
+        .engine-cell { width: 40px; height: 40px; background: rgba(255,255,255,0.1); border-radius: 8px; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 1.2rem; }
+        .ctrl-btn { background: rgba(255,255,255,0.1); border: 1px solid var(--glass-border); color: #fff; padding: 15px 25px; border-radius: 12px; cursor: pointer; }
+        
+        .synapse-bd { display: grid; gap: 15px; padding: 20px; background: rgba(0,0,0,0.3); border-radius: 12px; }
+        .syn-node { width: 50px; height: 50px; border-radius: 50%; border: 2px solid #475569; cursor: pointer; position: relative; transition: transform 0.3s ease; }
+        .syn-node::after { content: ''; position: absolute; top: 50%; left: 50%; width: 25px; height: 2px; background: #94a3b8; transform-origin: 0 50%; }
+        .syn-node.active { border-color: var(--neon-blue); box-shadow: 0 0 10px var(--neon-blue); }
+        .syn-node.active::after { background: var(--neon-blue); }
+
+        .trivia-btn { width: 100%; background: rgba(255,255,255,0.1); border: 1px solid var(--glass-border); padding: 15px; border-radius: 12px; color: #fff; cursor: pointer; text-align: left; transition: all 0.2s;}
+        .trivia-btn:hover { background: rgba(255,255,255,0.2); }
+
+        .mem-bd { display: grid; gap: 10px; }
+        .mem-card { width: 60px; height: 60px; background: rgba(255,255,255,0.1); border: 1px solid var(--glass-border); border-radius: 8px; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; cursor: pointer; color: transparent; transition: all 0.3s; }
+        .mem-card.flipped { background: rgba(255,255,255,0.9); color: #000; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+        ::-webkit-scrollbar-thumb { background: var(--glass-highlight); border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+    <div class="ambient-blob blob-1"></div>
+    <div class="ambient-blob blob-2"></div>
+    <div class="ambient-blob blob-3"></div>
+
+    <header>
+        <h1 id="app-title">Synapse Hub</h1>
+        <button class="lang-btn" onclick="toggleLang()" id="btn-lang">EN / ES</button>
+    </header>
+
+    <div class="container">
+        
+        <section>
+            <h2 id="news-title">Noticias Destacadas</h2>
+            <div class="news-grid" id="news-container"></div>
+        </section>
+
+        <!-- GAMES GRID WITH 4-HOUR ROTATION -->
+        <section>
+            <h2>
+                <span id="games-title">Laboratorio Cognitivo</span>
+                <span id="rotation-timer" class="timer-badge">--:--:--</span>
+            </h2>
+            <div class="games-grid glass-panel" id="games-container" style="background: rgba(0,0,0,0.2); padding: 30px;">
+            </div>
+        </section>
+
+        <section>
+            <h2 id="bot-title">Asistente NeuroBot</h2>
+            <div class="glass-panel chat-container">
+                <div class="chat-box" id="chat-box"></div>
+                <div class="chat-input-area">
+                    <input type="text" id="chat-input" placeholder="Pregunta sobre neuroanatomía, señales bioeléctricas...">
+                    <button onclick="sendMsg()" id="btn-send">Enviar</button>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- MODAL -->
+    <div class="modal-overlay" id="game-modal">
+        <div class="glass-panel modal-content">
+            <button class="close-btn" onclick="closeGame()">×</button>
+            <h2 id="modal-title" style="margin-bottom: 0;">Game</h2>
+            <p id="modal-desc" style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 20px;">Level</p>
+            <div id="game-render-area"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. DATA & I18N ---
+        let lang = 'es';
+        
+        const uiText = {
+            es: {
+                appTitle: "Synapse Hub", newsTitle: "Noticias Destacadas", gamesTitle: "Laboratorio Cognitivo",
+                botTitle: "Asistente NeuroBot", btnSend: "Enviar", placeholder: "Escribe sobre neuronas, bioseñales...",
+                botInit: "Sistema iniciado. Procesamiento local de lenguaje natural activado. ¿Sobre qué estructura neuronal deseas consultar?",
+                botErr: "Alerta de sistema: Consulta fuera de los parámetros científicos.",
+                botDef: "Estructura no identificada en base de datos. Pruebe términos como 'sinapsis', 'corteza motora' o 'plasticidad'.",
+                timerPrefix: "Nuevos en: ",
+                win: "Simulación completada con éxito."
+            },
+            en: {
+                appTitle: "Synapse Hub", newsTitle: "Featured Science News", gamesTitle: "Cognitive Lab",
+                botTitle: "NeuroBot Assistant", btnSend: "Send", placeholder: "Ask about neurons, biosignals...",
+                botInit: "System initialized. Local NLP active. Which neural structure would you like to inquire about?",
+                botErr: "System alert: Query outside scientific parameters.",
+                botDef: "Structure not found in database. Try terms like 'synapse', 'motor cortex' or 'plasticity'.",
+                timerPrefix: "New drop in: ",
+                win: "Simulation completed successfully."
+            }
+        };
+
+        const newsData = [
+            { tag: "BCI Tech", es: {t: "Nuevas matrices Utah Array", d: "Pacientes tetrapléjicos logran control de brazos con 98% de precisión."}, en: {t: "New Utah Array", d: "Tetraplegic patients achieve arm control with 98% accuracy."} },
+            { tag: "Neurología", es: {t: "Fármacos contra Alzheimer", d: "Reducción del 27% en deterioro cognitivo en fase III."}, en: {t: "Alzheimer's Drugs", d: "27% reduction in cognitive decline in phase III."} },
+            { tag: "Optogenética", es: {t: "Restauración visual", d: "Uso de canalrodopsinas permite a paciente localizar objetos."}, en: {t: "Visual Restoration", d: "Use of channelrhodopsin allows patient to locate objects."} },
+            { tag: "Anatomía", es: {t: "Atlas celular BRAIN", d: "Mapeo de más de 3,000 tipos celulares finalizado."}, en: {t: "BRAIN Cell Atlas", d: "Mapping of over 3,000 cell types completed."} }
+        ];
+
+        const kb = {
+            es: [ {k: ["sinapsis", "neurotransmisor"], r: "La sinapsis transfiere información liberando neurotransmisores."}, {k: ["plasticidad", "aprendizaje"], r: "La neuroplasticidad refuerza conexiones sinápticas físicamente (regla de Hebb)."} ],
+            en: [ {k: ["synapse", "neurotransmitter"], r: "The synapse transfers info by releasing neurotransmitters."}, {k: ["plasticity", "learning"], r: "Neuroplasticity physically strengthens connections (Hebb's rule)."} ]
+        };
+
+        // --- 2. GAME PROCEDURAL GENERATION (4-HOUR ROTATION) ---
+        let currentGames = [];
+        let currentBlock = -1;
+
+        // Semantic pieces for cool names
+        const prefixes = {
+            es: ["Quantum", "Neuro", "Bio", "Ciber", "Holo", "Sinap", "Astro", "Mente"],
+            en: ["Quantum", "Neuro", "Bio", "Cyber", "Holo", "Synap", "Astro", "Mind"]
+        };
+        const suffixes = {
+            es: ["Matrix", "Nexus", "Pulso", "Núcleo", "Enlace", "Onda", "Red", "Flujo"],
+            en: ["Matrix", "Nexus", "Pulse", "Core", "Link", "Wave", "Grid", "Flow"]
+        };
+        const icons = ['[ + ]', '{ O }', '( ? )', '< # >', '||*||', '[-_-]', '∆', '∞', 'Φ', 'Ω', '∑', '≈'];
+
+        // Deterministic Pseudo-Random Number Generator based on Seed
+        function seededRandom(seed) {
+            let x = Math.sin(seed) * 10000;
+            return x - Math.floor(x);
+        }
+
+        function checkGameRotation() {
+            const now = Date.now();
+            const blockDuration = 4 * 60 * 60 * 1000; // 4 hours in ms
+            const blockId = Math.floor(now / blockDuration);
+            
+            // Timer calculation
+            const nextBlockTime = (blockId + 1) * blockDuration;
+            const diff = nextBlockTime - now;
+            const h = Math.floor(diff / (1000 * 60 * 60));
+            const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
+            const s = Math.floor((diff % (1000 * 60)) / 1000).toString().padStart(2, '0');
+            
+            document.getElementById('rotation-timer').innerText = `${uiText[lang].timerPrefix} ${h}:${m}:${s}`;
+
+            // Generate new games if we entered a new 4-hour block
+            if (blockId !== currentBlock) {
+                currentBlock = blockId;
+                generateGamesForBlock(currentBlock);
+                renderGamesGrid();
+            }
+        }
+
+        function generateGamesForBlock(blockId) {
+            currentGames = [];
+            for(let i=0; i<20; i++) {
+                let seed = blockId * 100 + i; // Unique seed for this slot in this 4h block
+                
+                // Randomize mechanics and aesthetics using the seed
+                let mechId = Math.floor(seededRandom(seed) * 4); // 0 to 3
+                let level = Math.floor(seededRandom(seed + 1) * 5) + 1; // 1 to 5
+                let icon = icons[Math.floor(seededRandom(seed + 2) * icons.length)];
+                let hue = Math.floor(seededRandom(seed + 3) * 360); // Colors
+                
+                // We store the seed indices for names so we can translate them instantly
+                let pIdx = Math.floor(seededRandom(seed + 4) * prefixes.es.length);
+                let sIdx = Math.floor(seededRandom(seed + 5) * suffixes.es.length);
+
+                currentGames.push({ mechId, level, icon, hue, pIdx, sIdx });
+            }
+        }
+
+        // --- 3. INITIALIZATION & RENDER ---
+        function toggleLang() {
+            lang = lang === 'es' ? 'en' : 'es';
+            document.getElementById('app-title').innerText = uiText[lang].appTitle;
+            document.getElementById('news-title').innerText = uiText[lang].newsTitle;
+            document.getElementById('games-title').innerText = uiText[lang].gamesTitle;
+            document.getElementById('bot-title').innerText = uiText[lang].botTitle;
+            document.getElementById('btn-send').innerText = uiText[lang].btnSend;
+            document.getElementById('chat-input').placeholder = uiText[lang].placeholder;
+            
+            renderNews();
+            renderGamesGrid(); // Rerender to translate names
+            checkGameRotation(); // Update timer text
+            document.getElementById('chat-box').innerHTML = `<div class="msg bot-msg">${uiText[lang].botInit}</div>`;
+        }
+
+        function renderNews() {
+            const container = document.getElementById('news-container');
+            container.innerHTML = '';
+            newsData.forEach((news) => {
+                const card = document.createElement('div');
+                card.className = 'glass-panel news-card';
+                card.onclick = () => card.classList.toggle('expanded');
+                card.innerHTML = `
+                    <span class="news-tag">${news.tag}</span>
+                    <div class="news-title">${news[lang].t}</div>
+                    <div class="news-desc">${news[lang].d}</div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderGamesGrid() {
+            const container = document.getElementById('games-container');
+            container.innerHTML = '';
+            
+            currentGames.forEach((game, idx) => {
+                const name = `${prefixes[lang][game.pIdx]} ${suffixes[lang][game.sIdx]}`;
+                const thumb = document.createElement('div');
+                thumb.className = 'game-thumb';
+                // Apply the unique hue generated by the seed to give color variety
+                thumb.style.background = `linear-gradient(135deg, hsla(${game.hue}, 70%, 50%, 0.15), rgba(255,255,255,0.02))`;
+                
+                thumb.onclick = () => openGame(idx);
+                thumb.innerHTML = `
+                    <div class="game-icon" style="color: hsl(${game.hue}, 80%, 70%);">${game.icon}</div>
+                    <div class="game-name">${name}</div>
+                    <div class="game-lvl">Lvl ${game.level}</div>
+                `;
+                container.appendChild(thumb);
+            });
+        }
+
+        // --- 4. CHATBOT LOGIC ---
+        function sendMsg() {
+            const input = document.getElementById('chat-input');
+            const txt = input.value.trim();
+            if(!txt) return;
+            const box = document.getElementById('chat-box');
+            box.innerHTML += `<div class="msg user-msg">${txt}</div>`;
+            input.value = '';
+
+            setTimeout(() => {
+                let res = uiText[lang].botDef;
+                let txtLower = txt.toLowerCase();
+                let best = null, maxScore = 0;
+                kb[lang].forEach(e => {
+                    let score = e.k.filter(kw => txtLower.includes(kw)).length;
+                    if(score > maxScore) { maxScore = score; best = e; }
+                });
+                if(best) res = best.r;
+                
+                box.innerHTML += `<div class="msg bot-msg">${res}</div>`;
+                box.scrollTop = box.scrollHeight;
+            }, 600);
+        }
+
+        // --- 5. GAME ENGINE (MODAL) ---
+        let st = {}; 
+        
+        function openGame(gameIndex) {
+            const game = currentGames[gameIndex];
+            const name = `${prefixes[lang][game.pIdx]} ${suffixes[lang][game.sIdx]}`;
+            
+            document.getElementById('game-modal').style.display = 'flex';
+            document.getElementById('modal-title').innerText = name;
+            document.getElementById('modal-desc').innerText = `Simulation Level: ${game.level}`;
+            const area = document.getElementById('game-render-area');
+            area.innerHTML = '';
+
+            if(game.mechId === 0) runGridGame(area, game.level);
+            if(game.mechId === 1) runSynapseGame(area, game.level);
+            if(game.mechId === 2) runTriviaGame(area, game.level);
+            if(game.mechId === 3) runMemoryGame(area, game.level);
+        }
+
+        function closeGame() { document.getElementById('game-modal').style.display = 'none'; }
+        const triggerWin = () => setTimeout(() => alert(uiText[lang].win), 200);
+
+        // Mech 0: Navigator
+        function runGridGame(area, lvl) {
+            const s = 3 + lvl;
+            st = { x: 0, y: 0, bx: s-1, by: s-2, s: s };
+            area.innerHTML = `
+                <div class="engine-grid" id="e-grid" style="grid-template-columns: repeat(${s}, 40px);"></div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; margin-top:20px;">
+                    <div style="grid-column:2;"> <button class="ctrl-btn" onclick="mv(0,-1)">^</button> </div>
+                    <div style="grid-column:1;"> <button class="ctrl-btn" onclick="mv(-1,0)"><</button> </div>
+                    <div style="grid-column:2;"> <button class="ctrl-btn" onclick="mv(0,1)">v</button> </div>
+                    <div style="grid-column:3;"> <button class="ctrl-btn" onclick="mv(1,0)">></button> </div>
+                </div>`;
+            drawGrid();
+        }
+        function mv(dx, dy) {
+            if(st.x+dx>=0 && st.x+dx<st.s && st.y+dy>=0 && st.y+dy<st.s) { st.x+=dx; st.y+=dy; drawGrid(); }
+            if(st.x===st.bx && st.y===st.by) triggerWin();
+        }
+        function drawGrid() {
+            const g = document.getElementById('e-grid'); g.innerHTML = '';
+            for(let y=0; y<st.s; y++) {
+                for(let x=0; x<st.s; x++) {
+                    const c = document.createElement('div'); c.className = 'engine-cell';
+                    if(x===st.x && y===st.y) c.innerText = 'R';
+                    else if(x===st.bx && y===st.by) c.innerText = 'T';
+                    g.appendChild(c);
+                }
+            }
+        }
+
+        // Mech 1: Synapse
+        function runSynapseGame(area, lvl) {
+            const count = 4 + (lvl*2);
+            st = { nodes: Array.from({length: count}, () => Math.floor(Math.random() * 3 + 1) * 90) };
+            area.innerHTML = `<div class="synapse-bd" id="s-bd" style="grid-template-columns: repeat(${lvl<3?3:4}, 50px);"></div>
+                              <button class="ctrl-btn" style="margin-top:20px; width:100%;" onclick="chkSyn()">EXECUTE LINK</button>`;
+            drawSyn();
+        }
+        function rtNode(i) { st.nodes[i] = (st.nodes[i] + 90) % 360; drawSyn(); }
+        function drawSyn() {
+            const b = document.getElementById('s-bd'); b.innerHTML = '';
+            st.nodes.forEach((a, i) => {
+                const n = document.createElement('div');
+                n.className = `syn-node ${a===0?'active':''}`;
+                n.style.transform = `rotate(${a}deg)`;
+                n.onclick = () => rtNode(i);
+                b.appendChild(n);
+            });
+        }
+        function chkSyn() { if(st.nodes.every(a=>a===0)) triggerWin(); }
+
+        // Mech 2: Trivia
+        function runTriviaGame(area, lvl) {
+            const t = {
+                es: [{q:"Componente que aísla el axón?", o:["Mielina", "Plasma", "Agua"], a:0}, {q:"Ión en neurotransmisores?", o:["Potasio", "Calcio", "Cloro"], a:1}, {q:"Lóbulo de la visión?", o:["Frontal", "Occipital", "Parietal"], a:1}, {q:"Interfaz Cerebro-Máquina?", o:["BCI", "MRI", "EEG"], a:0}, {q:"Células estrelladas?", o:["Astrocitos", "Microglía", "Oligodendrocitos"], a:0}],
+                en: [{q:"Insulates the axon?", o:["Myelin", "Plasma", "Water"], a:0}, {q:"Ion in neurotransmitters?", o:["Potassium", "Calcium", "Chlorine"], a:1}, {q:"Vision lobe?", o:["Frontal", "Occipital", "Parietal"], a:1}, {q:"Brain-Machine Interface?", o:["BCI", "MRI", "EEG"], a:0}, {q:"Star-shaped cells?", o:["Astrocytes", "Microglia", "Oligodendrocytes"], a:0}]
+            };
+            const qData = t[lang][lvl-1];
+            st = { ans: qData.a };
+            let opts = qData.o.map((opt, i) => `<button class="trivia-btn" onclick="chkTriv(${i})">${opt}</button>`).join('');
+            area.innerHTML = `<div style="width:100%;"><h3 style="color:#fff; margin-bottom:20px;">${qData.q}</h3><div style="display:flex; flex-direction:column; gap:10px;">${opts}</div></div>`;
+        }
+        function chkTriv(idx) { if(idx === st.ans) triggerWin(); else alert('Error.'); }
+
+        // Mech 3: Memory
+        const mSym = ['A','B','C','D','E','F','G','H', 'I', 'J'];
+        function runMemoryGame(area, lvl) {
+            const pairs = 2 + lvl;
+            let d = mSym.slice(0, pairs); d = [...d, ...d].sort(() => Math.random() - 0.5);
+            st = { deck: d, flip: [], match: 0, tot: pairs };
+            area.innerHTML = `<div class="mem-bd" id="m-bd" style="grid-template-columns: repeat(${pairs>4?4:3}, 60px);"></div>`;
+            drawMem();
+        }
+        function flpCard(i) {
+            if(st.flip.length < 2 && !st.flip.includes(i)) {
+                st.flip.push(i); drawMem();
+                if(st.flip.length === 2) {
+                    setTimeout(() => {
+                        let [i1, i2] = st.flip;
+                        if(st.deck[i1] === st.deck[i2]) st.match++;
+                        else { st.deck[i1] = null; st.deck[i2] = null; }
+                        st.flip = []; drawMem();
+                        if(st.match === st.tot) triggerWin();
+                    }, 600);
+                }
+            }
+        }
+        function drawMem() {
+            const b = document.getElementById('m-bd'); b.innerHTML = '';
+            st.deck.forEach((v, i) => {
+                const c = document.createElement('div');
+                const isF = st.flip.includes(i) || v === null;
+                c.className = `mem-card ${isF ? 'flipped' : ''}`;
+                c.innerText = isF ? (v||'X') : '?';
+                c.onclick = () => flpCard(i);
+                b.appendChild(c);
+            });
+        }
+
+        // --- INIT ---
+        window.onload = () => {
+            renderNews();
+            checkGameRotation(); 
+            setInterval(checkGameRotation, 1000); // Check rotation and update timer every second
+            document.getElementById('chat-box').innerHTML = `<div class="msg bot-msg">${uiText[lang].botInit}</div>`;
+            document.getElementById('chat-input').addEventListener('keypress', e => { if(e.key === 'Enter') sendMsg(); });
+        };
+    </script>
+</body>
+</html>

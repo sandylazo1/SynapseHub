@@ -1,0 +1,34 @@
+Copyright (c) [2026] sandylazo1 & EpilexBox SpA
+
+Este proyecto (código fuente, diseño, mecánicas y recursos visuales/auditivos) 
+se distribuye bajo la licencia:
+Creative Commons Reconocimiento-NoComercial 4.0 Internacional (CC BY-NC 4.0).
+
+========================================================================
+TÉRMINOS DE USO LIBRE (GRATUITO Y OPEN SOURCE)
+========================================================================
+Eres libre de:
+1. Compartir — copiar y redistribuir el material en cualquier medio o formato.
+2. Adaptar — remezclar, transformar y crear a partir del material.
+
+Siempre y cuando cumplas con los siguientes términos:
+- Reconocimiento (Attribution): Debes otorgar el crédito correspondiente al autor original, proporcionar un enlace a esta licencia e indicar si se han realizado cambios.
+- No Comercial (NonCommercial): NO PUEDES utilizar el material, ni sus derivados, para ningún fin comercial. Esto prohíbe estrictamente la venta, monetización, o inclusión de este código en productos por los que se cobre dinero.
+
+========================================================================
+EXCEPCIÓN PARA USO COMERCIAL (LICENCIAMIENTO DUAL)
+========================================================================
+La restricción "No Comercial" mencionada arriba bloquea explícitamente a cualquier individuo o empresa de utilizar este software o sus derivados para generar ingresos.
+
+Si deseas utilizar este proyecto, total o parcialmente, en un entorno comercial (por ejemplo: integrarlo en una aplicación de pago, vender el código, monetizar la plataforma, o utilizarlo dentro de una empresa con fines de lucro), ESTÁS OBLIGADO a adquirir una Licencia Comercial Privada.
+
+Para solicitar permisos de uso comercial y negociar los términos (que pueden incluir pago de regalías, porcentaje de ingresos, comisiones fijas, o participación accionaria/equity de la empresa), debes contactar directamente al autor a través de los siguientes medios:
+
+Correo electrónico de contacto: [TU CORREO ELECTRÓNICO AQUÍ]
+[SITIO WEB O PERFIL DE GITHUB AQUÍ]
+
+Cualquier uso comercial sin un acuerdo previo y firmado por el autor original constituye una infracción de los derechos de autor (Copyright).
+
+========================================================================
+El texto legal completo de la licencia base (CC BY-NC 4.0) puede ser consultado en:
+https://creativecommons.org/licenses/by-nc/4.0/legalcode.es

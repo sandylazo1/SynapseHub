@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Synapse Hub Pro | EpilexBox & sandylazo1</title>
+    <style>
+        /* === VARIABLES & THEME === */
+        :root {
+            --bg-dark: #050b14;
+            --glass-bg: rgba(255, 255, 255, 0.04);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-highlight: rgba(255, 255, 255, 0.15);
+            --text-light: #f8fafc;
+            --epilex-blue: #1e40af;
+            --epilex-green: #10b981;
+            --neon-cyan: #06b6d4;
+            --neon-pink: #ec4899;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, Helvetica, sans-serif; }
+
+        body {
+            background-color: var(--bg-dark); color: var(--text-light);
+            min-height: 100vh; overflow-x: hidden; position: relative;
+        }
+
+        /* Ambient Background */
+        .ambient-blob {
+            position: fixed; border-radius: 50%; filter: blur(120px); z-index: -1;
+            animation: float 25s infinite alternate ease-in-out;
+        }
+        .blob-1 { top: -10%; left: -10%; width: 50vw; height: 50vw; background: rgba(30, 64, 175, 0.2); }
+        .blob-2 { bottom: -20%; right: -10%; width: 60vw; height: 60vw; background: rgba(16, 185, 129, 0.15); animation-delay: -5s; }
+
+        @keyframes float { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(60px, 60px) scale(1.15); } }
+
+        /* Glassmorphism */
+        .glass-panel {
+            background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border); border-radius: 20px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); padding: 24px;
+        }
+
+        /* Header & Nav */
+        header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 40px; position: sticky; top: 0; z-index: 100;
+            background: rgba(5, 11, 20, 0.8); backdrop-filter: blur(20px); border-bottom: 1px solid var(--glass-border);
+        }
+        .logo-container { display: flex; align-items: center; gap: 15px; }
+        .logo-img { height: 50px; border-radius: 8px; }
+        .header-title { display: flex; flex-direction: column; }
+        .header-title h1 { font-weight: 300; font-size: 1.5rem; letter-spacing: 1px; color: var(--text-light); }
+        .header-title span { font-size: 0.8rem; color: var(--epilex-green); font-weight: bold; letter-spacing: 2px; text-transform: uppercase;}
+
+        .menu-btn {
+            background: none; border: none; color: var(--text-light); font-size: 1.8rem; cursor: pointer; transition: color 0.3s;
+        }
+        .menu-btn:hover { color: var(--epilex-green); }
+
+        /* Sidebar Menu */
+        #sidebar {
+            position: fixed; top: 0; right: -400px; width: 350px; height: 100vh;
+            background: rgba(10, 15, 30, 0.95); backdrop-filter: blur(30px);
+            border-left: 1px solid var(--glass-border); z-index: 200; transition: right 0.4s ease;
+            padding: 30px; display: flex; flex-direction: column; gap: 30px;
+        }
+        #sidebar.open { right: 0; }
+        .close-sidebar { align-self: flex-end; background: none; border: none; color: white; font-size: 2rem; cursor: pointer; }
+        .contact-form { display: flex; flex-direction: column; gap: 15px; }
+        .contact-form input, .contact-form textarea {
+            background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); color: white;
+            padding: 12px; border-radius: 10px; font-size: 0.95rem; outline: none;
+        }
+        .contact-form input:focus, .contact-form textarea:focus { border-color: var(--epilex-green); }
+        .contact-form button {
+            background: linear-gradient(135deg, var(--epilex-blue), var(--epilex-green));
+            color: white; border: none; padding: 12px; border-radius: 10px; cursor: pointer; font-weight: bold;
+        }
+
+        .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; display: flex; flex-direction: column; gap: 50px; }
+        h2 { font-weight: 300; margin-bottom: 25px; font-size: 1.8rem; border-bottom: 2px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
+        h2 span { color: var(--epilex-green); font-weight: bold; }
+
+        /* Rotating Tips */
+        .tip-banner {
+            background: linear-gradient(90deg, rgba(30,64,175,0.2) 0%, rgba(16,185,129,0.2) 100%);
+            border: 1px solid var(--epilex-green); border-radius: 15px; padding: 20px; text-align: center;
+            position: relative; overflow: hidden; min-height: 100px; display: flex; align-items: center; justify-content: center;
+        }
+        .tip-content { font-size: 1.1rem; line-height: 1.5; transition: opacity 0.5s; }
+
+        /* Interactive AI Learning Arcade */
+        .learning-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+        .learn-card { display: flex; flex-direction: column; gap: 15px; text-align: center; }
+        .interactive-zone { background: rgba(0,0,0,0.4); border-radius: 12px; padding: 20px; min-height: 150px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 10px; position: relative; }
+        .learn-btn { background: var(--epilex-blue); color: white; border: none; padding: 8px 15px; border-radius: 20px; cursor: pointer; transition: 0.3s; }
+        .learn-btn:hover { background: var(--epilex-green); }
+        
+        /* Interactive: NN */
+        .nn-nodes { display: flex; gap: 20px; }
+        .nn-node { width: 30px; height: 30px; border-radius: 50%; background: #333; transition: 0.3s; cursor: pointer; border: 2px solid #555; }
+        .nn-node.active { background: var(--epilex-green); box-shadow: 0 0 15px var(--epilex-green); border-color: white; }
+        
+        /* Interactive: Fuzzy Logic */
+        .slider { width: 100%; cursor: pointer; }
+        .fuzzy-result { font-weight: bold; font-size: 1.1rem; color: var(--neon-cyan); }
+
+        /* OpenCV God Programs */
+        .opencv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; }
+        .cv-card { position: relative; overflow: hidden; cursor: pointer; transition: transform 0.3s; border-radius: 15px; }
+        .cv-card:hover { transform: translateY(-10px); box-shadow: 0 10px 30px rgba(16, 185, 129, 0.2); border-color: var(--epilex-green); }
+        .cv-visual { height: 160px; background: #000; display: flex; align-items: center; justify-content: center; font-size: 3rem; position: relative; }
+        .cv-visual::after { content: 'REC •'; position: absolute; top: 10px; right: 10px; color: red; font-size: 0.8rem; animation: blink 1s infinite; font-weight: bold; }
+        .cv-info { padding: 15px; background: rgba(255,255,255,0.05); }
+        .cv-title { font-weight: bold; color: var(--epilex-green); margin-bottom: 5px; }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0; } 100% { opacity: 1; } }
+
+        /* Chatbot Doctor Avatar */
+        .chat-wrapper { display: flex; gap: 20px; height: 500px; flex-wrap: wrap;}
+        .doctor-avatar {
+            width: 200px; background: rgba(0,0,0,0.3); border-radius: 20px; border: 1px solid var(--glass-border);
+            display: flex; flex-direction: column; align-items: center; padding: 20px; justify-content: center; gap: 15px;
+        }
+        .doc-img {
+            width: 120px; height: 120px; border-radius: 50%; border: 3px solid var(--epilex-green);
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="40" r="20" fill="%231e40af"/><path d="M20,90 Q50,50 80,90" fill="none" stroke="%231e40af" stroke-width="15" stroke-linecap="round"/><circle cx="50" cy="40" r="20" fill="%2338bdf8"/><path d="M25,90 Q50,60 75,90" fill="none" stroke="%2338bdf8" stroke-width="10" stroke-linecap="round"/><circle cx="35" cy="35" r="3" fill="white"/><circle cx="65" cy="35" r="3" fill="white"/><path d="M45,45 Q50,50 55,45" fill="none" stroke="white" stroke-width="2"/></svg>') no-repeat center center;
+            background-size: cover; box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+        }
+        
+        .chat-container { flex: 1; display: flex; flex-direction: column; gap: 15px; min-width: 300px;}
+        .chat-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px;}
+        .ai-selector { background: rgba(0,0,0,0.5); color: white; border: 1px solid var(--glass-border); padding: 5px 10px; border-radius: 8px; outline: none;}
+        
+        .chat-box { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding-right: 10px; }
+        .msg { padding: 12px 18px; border-radius: 15px; max-width: 85%; font-size: 0.95rem; line-height: 1.5; }
+        .user-msg { align-self: flex-end; background: linear-gradient(135deg, var(--epilex-blue), #3b82f6); color: #fff; border-bottom-right-radius: 2px; }
+        .bot-msg { align-self: flex-start; background: rgba(255,255,255,0.08); border: 1px solid var(--glass-border); border-bottom-left-radius: 2px; color: #e2e8f0; position: relative;}
+        
+        .chat-input-area { display: flex; gap: 10px; align-items: center;}
+        .chat-input-area input {
+            flex: 1; background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border); color: #fff;
+            padding: 15px 20px; border-radius: 25px; outline: none; transition: 0.3s;
+        }
+        .chat-input-area input:focus { border-color: var(--epilex-green); }
+        .mic-btn {
+            background: var(--epilex-blue); border: none; width: 50px; height: 50px; border-radius: 50%;
+            color: white; font-size: 1.2rem; cursor: pointer; transition: 0.3s; display: flex; justify-content: center; align-items: center;
+        }
+        .mic-btn.listening { background: var(--neon-pink); animation: pulse 1s infinite; }
+        .mic-btn:hover { background: var(--epilex-green); }
+        
+        footer {
+            text-align: center; padding: 30px; margin-top: 50px;
+            border-top: 1px solid var(--glass-border); background: rgba(0,0,0,0.5);
+            font-size: 0.9rem; color: #94a3b8;
+        }
+        footer span { color: var(--epilex-green); font-weight: bold; }
+
+    </style>
+</head>
+<body>
+
+    <!-- Ambient Background -->
+    <div class="ambient-blob blob-1"></div>
+    <div class="ambient-blob blob-2"></div>
+
+    <!-- HEADER -->
+    <header>
+        <div class="logo-container">
+            <!-- Referencing exactly the file name provided -->
+            <img src="logo epilexbox.jpeg" alt="EpilexBox Logo" class="logo-img" onerror="this.src='https://via.placeholder.com/50/1e40af/ffffff?text=EB'">
+            <div class="header-title">
+                <h1>Synapse Hub Pro</h1>
+                <span>By sandylazo1 & EpilexBox</span>
+            </div>
+        </div>
+        <button class="menu-btn" onclick="toggleMenu()">☰</button>
+    </header>
+
+    <!-- SIDEBAR MENU -->
+    <aside id="sidebar">
+        <button class="close-sidebar" onclick="toggleMenu()">×</button>
+        <h2 style="font-size: 1.5rem; border:none; margin:0;">Contacto <span>Directo</span></h2>
+        <p style="font-size: 0.9rem; color: #aaa;">Envíame recomendaciones, dudas sobre el código o consultas para GitHub.</p>
+        <form class="contact-form" onsubmit="event.preventDefault(); alert('¡Mensaje simulado enviado a sandylazo1 en GitHub!');">
+            <input type="text" placeholder="Tu Nombre o GitHub User" required>
+            <input type="email" placeholder="Tu Correo" required>
+            <textarea rows="4" placeholder="¿Qué mejoras sugieres para este proyecto?" required></textarea>
+            <button type="submit">Enviar a Notificaciones</button>
+        </form>
+    </aside>
+
+    <div class="container">
+        
+        <!-- ROTATING TIPS: TECH ACROSS LIFE -->
+        <section>
+            <h2><span>NeuroTech</span> en la Vida Real</h2>
+            <div class="tip-banner">
+                <div id="tip-text" class="tip-content">Cargando datos biográficos...</div>
+            </div>
+        </section>
+
+        <!-- INTERACTIVE AI LEARNING -->
+        <section>
+            <h2>Aprende IA <span>Jugando</span> (De 5 a 90 años)</h2>
+            <div class="learning-grid">
+                
+                <!-- Red Neuronal -->
+                <div class="glass-panel learn-card">
+                    <h3>Red Neuronal 🧠</h3>
+                    <p style="font-size:0.85rem; color:#aaa;">Haz clic en las entradas (ojos/oídos) para activar la decisión final.</p>
+                    <div class="interactive-zone">
+                        <div class="nn-nodes">
+                            <div class="nn-node" onclick="toggleNode(this)"></div>
+                            <div class="nn-node" onclick="toggleNode(this)"></div>
+                            <div class="nn-node" onclick="toggleNode(this)"></div>
+                        </div>
+                        <div style="height: 20px; border-left: 2px dashed #555; margin: 10px 0;"></div>
+                        <div id="nn-output" style="padding: 10px; background: #222; border-radius: 10px;">Resultado: Inactivo</div>
+                    </div>
+                </div>
+
+                <!-- Lógica Difusa -->
+                <div class="glass-panel learn-card">
+                    <h3>Lógica Difusa 🌡️</h3>
+                    <p style="font-size:0.85rem; color:#aaa;">No todo es blanco o negro. Ajusta la temperatura (grises).</p>
+                    <div class="interactive-zone">
+                        <input type="range" min="0" max="100" value="50" class="slider" oninput="updateFuzzy(this.value)">
+                        <div id="fuzzy-text" class="fuzzy-result">Templado (50%)</div>
+                        <div style="font-size: 0.8rem; margin-top:10px;">Frio <span id="f-c">50</span>% | Calor <span id="f-h">50</span>%</div>
+                    </div>
+                </div>
+
+                <!-- Algoritmo Genético -->
+                <div class="glass-panel learn-card">
+                    <h3>Alg. Genético 🧬</h3>
+                    <p style="font-size:0.85rem; color:#aaa;">Evoluciona esta figura extraña hasta convertirla en un círculo perfecto.</p>
+                    <div class="interactive-zone">
+                        <div id="gen-shape" style="width: 60px; height: 60px; background: var(--epilex-blue); border-radius: 10% 40% 20% 70%; transition: 0.5s;"></div>
+                        <button class="learn-btn" onclick="evolveShape()" style="margin-top: 15px;">Evolucionar</button>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- OPENCV LAB -->
+        <section>
+            <h2>Laboratorio <span>OpenCV</span> God 👁️</h2>
+            <p style="margin-bottom: 20px; color:#aaa;">Módulos de Visión Computacional. (Simulación de UI - Requieren Python/JS backend real en despliegue local).</p>
+            <div class="opencv-grid">
+                
+                <div class="glass-panel cv-card" onclick="alert('Iniciando rastreo de manos (MediaPipe/OpenCV)...')">
+                    <div class="cv-visual">💥</div>
+                    <div class="cv-info">
+                        <div class="cv-title">Kamehameha AR</div>
+                        <div style="font-size: 0.8rem;">Junta las manos en la cámara para cargar y lanzar energía.</div>
+                    </div>
+                </div>
+
+                <div class="glass-panel cv-card">
+                    <div class="cv-visual">🎭</div>
+                    <div class="cv-info">
+                        <div class="cv-title">Intercambio Facial en Vivo</div>
+                        <div style="font-size: 0.8rem;">DeepFake ligero con Haar Cascades y Dlib.</div>
+                    </div>
+                </div>
+
+                <div class="glass-panel cv-card">
+                    <div class="cv-visual">🎹</div>
+                    <div class="cv-info">
+                        <div class="cv-title">Piano Invisible</div>
+                        <div style="font-size: 0.8rem;">Dibuja un piano en tu mesa y tócalo con los dedos (Hand Tracking).</div>
+                    </div>
+                </div>
+
+                <div class="glass-panel cv-card">
+                    <div class="cv-visual">🛡️</div>
+                    <div class="cv-info">
+                        <div class="cv-title">Escudo Doctor Strange</div>
+                        <div style="font-size: 0.8rem;">Gira tus muñecas para invocar mandalas de luz AR.</div>
+                    </div>
+                </div>
+
+                <div class="glass-panel cv-card">
+                    <div class="cv-visual">🚗</div>
+                    <div class="cv-info">
+                        <div class="cv-title">Conducción Autónoma Toy</div>
+                        <div style="font-size: 0.8rem;">Detección de carriles y objetos en tiempo real (YOLOv8 nano).</div>
+                    </div>
+                </div>
+
+                <div class="glass-panel cv-card">
+                    <div class="cv-visual">🩺</div>
+                    <div class="cv-info">
+                        <div class="cv-title">Pulso por Video (rPPG)</div>
+                        <div style="font-size: 0.8rem;">Mide tu ritmo cardíaco analizando micro-cambios de color en tu frente.</div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- CHATBOT & VOICE -->
+        <section>
+            <h2>Dra. IA <span>Consultorio</span></h2>
+            <div class="glass-panel chat-wrapper">
+                
+                <!-- Doctor Avatar -->
+                <div class="doctor-avatar">
+                    <div class="doc-img"></div>
+                    <div style="text-align: center;">
+                        <h3 style="color: var(--epilex-green); font-size: 1.1rem;">Dra. Neuro</h3>
+                        <p style="font-size: 0.8rem; color: #aaa;">Especialista IA</p>
+                    </div>
+                    <div id="doc-status" style="font-size: 0.8rem; color: var(--neon-cyan); background: rgba(6,182,212,0.1); padding: 5px 10px; border-radius: 10px; border: 1px solid var(--neon-cyan);">En línea</div>
+                </div>
+
+                <!-- Chat System -->
+                <div class="chat-container">
+                    <div class="chat-header">
+                        <span style="font-weight:bold;">Interfaz de Diagnóstico</span>
+                        <select class="ai-selector" id="ai-model">
+                            <option value="wiki">Modo Seguro (Wikipedia)</option>
+                            <option value="ollama">Local LLM (Ollama/Gemma)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="chat-box" id="chat-box">
+                        <div class="msg bot-msg">Hola. Soy la Dra. Neuro. Puedes escribir o usar tu micrófono para preguntarme sobre neurotecnología, robótica, o mi creadora sandylazo1.</div>
+                    </div>
+                    
+                    <div class="chat-input-area">
+                        <button class="mic-btn" id="mic-btn" onclick="toggleMic()" title="Hablar con micrófono">🎤</button>
+                        <input type="text" id="chat-input" placeholder="Escribe tu consulta o habla...">
+                        <button onclick="sendMsg()" style="background: var(--epilex-green); color: white; border: none; padding: 15px 25px; border-radius: 25px; font-weight: bold; cursor: pointer;">Enviar</button>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </div>
+
+    <!-- FOOTER -->
+    <footer>
+        <p>Desarrollado con ❤️ por <span>sandylazo1</span> | Creadora Original</p>
+        <p style="margin-top: 10px; font-size: 0.8rem;">
+            Powered by <span>EpilexBox</span>. Proyecto Educativo e Interactivo.<br>
+            Licencia MIT &copy; 2026. Permiso concedido de forma gratuita a cualquier persona que obtenga una copia de este software y archivos de documentación asociados para utilizarlo sin restricciones.
+        </p>
+    </footer>
+
+    <script>
+        // --- 1. MENÚ LATERAL ---
+        function toggleMenu() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('open');
+        }
+
+        // --- 2. ROTATING TIPS (Tech Life) ---
+        const tips = [
+            "👶 <b>3 a 5 años:</b> Juguetes robóticos básicos (como Bee-Bot) enseñan lógica de secuencias y resolución de problemas antes de saber leer.",
+            "👦 <b>6 a 12 años:</b> Primeros algoritmos genéticos en videojuegos (evolución de mascotas). Interfaces cerebro-computadora (BCI) en juegos de concentración.",
+            "🧑 <b>13 a 18 años:</b> Programación en OpenCV. Creación de filtros de IA para redes sociales. Desarrollo cognitivo apoyado por tutores de IA adaptativos.",
+            "👨‍💻 <b>Juventud y Adultez:</b> Prótesis biónicas controladas por la mente (Neurotech). Domótica inteligente basada en lógica difusa para confort térmico.",
+            "🧓 <b>Tercera Edad (65+):</b> Exoesqueletos robóticos para movilidad. Terapias de estimulación cerebral profunda (DBS) para el Parkinson y monitoreo de salud con IA."
+        ];
+        let tipIndex = 0;
+        const tipEl = document.getElementById('tip-text');
+        
+        function changeTip() {
+            tipEl.style.opacity = 0;
+            setTimeout(() => {
+                tipEl.innerHTML = tips[tipIndex];
+                tipEl.style.opacity = 1;
+                tipIndex = (tipIndex + 1) % tips.length;
+            }, 500);
+        }
+        changeTip();
+        // Cambia cada 15 segundos para demo (en vez de 5 min para que el usuario pueda verlo rápido)
+        setInterval(changeTip, 15000); 
+
+        // --- 3. INTERACTIVE AI LEARNING ---
+        // Red Neuronal
+        function toggleNode(el) {
+            el.classList.toggle('active');
+            const activeCount = document.querySelectorAll('.nn-node.active').length;
+            const output = document.getElementById('nn-output');
+            if(activeCount === 0) { output.innerText = "Resultado: Inactivo"; output.style.background = "#222"; output.style.color="white"; }
+            else if(activeCount === 1) { output.innerText = "Pensando... (Peso bajo)"; output.style.background = "#854d0e"; output.style.color="white"; }
+            else if(activeCount === 2) { output.innerText = "Casi seguro... (Peso medio)"; output.style.background = "#1e40af"; output.style.color="white"; }
+            else { output.innerText = "¡Decisión Tomada! (Activación)"; output.style.background = "var(--epilex-green)"; output.style.color="#000"; }
+        }
+
+        // Lógica Difusa
+        function updateFuzzy(val) {
+            const cold = 100 - val;
+            const hot = val;
+            document.getElementById('f-c').innerText = cold;
+            document.getElementById('f-h').innerText = hot;
+            const text = document.getElementById('fuzzy-text');
+            if(val < 20) { text.innerText = "Muy Frío ❄️"; text.style.color = "#38bdf8"; }
+            else if(val < 45) { text.innerText = "Fresco 🧊"; text.style.color = "#818cf8"; }
+            else if(val < 65) { text.innerText = "Templado ☁️"; text.style.color = "white"; }
+            else if(val < 85) { text.innerText = "Cálido ☀️"; text.style.color = "#fbbf24"; }
+            else { text.innerText = "Muy Caliente 🔥"; text.style.color = "#ef4444"; }
+        }
+
+        // Algoritmo Genético
+        let genGen = 0;
+        function evolveShape() {
+            genGen++;
+            const shape = document.getElementById('gen-shape');
+            // Progresivamente lo hacemos más redondo
+            let br1 = Math.max(10, 10 + (genGen * 15));
+            let br2 = Math.max(40, 40 + (genGen * 10));
+            let br3 = Math.max(20, 20 + (genGen * 12));
+            let br4 = Math.max(70, 70 + (genGen * 5));
+            
+            if(br1 > 50) br1 = 50; if(br2 > 50) br2 = 50;
+            if(br3 > 50) br3 = 50; if(br4 > 50) br4 = 50;
+
+            shape.style.borderRadius = `${br1}% ${br2}% ${br3}% ${br4}%`;
+            if(br1 === 50 && br2 === 50) {
+                shape.style.background = "var(--epilex-green)";
+                setTimeout(() => alert('¡Generación Optimizada! Forma perfecta alcanzada.'), 300);
+                genGen = 0; // reset
+            }
+        }
+
+        // --- 4. CHATBOT Y MICRÓFONO (Voice + Ollama/Wiki) ---
+        const chatBox = document.getElementById('chat-box');
+        const docStatus = document.getElementById('doc-status');
+        let isListening = false;
+        let recognition;
+
+        // Configurar Web Speech API
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRec();
+            recognition.lang = 'es-ES';
+            recognition.continuous = false;
+            recognition.interimResults = false;
+
+            recognition.onstart = () => {
+                isListening = true;
+                document.getElementById('mic-btn').classList.add('listening');
+                docStatus.innerText = "Escuchando...";
+            };
+            
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                document.getElementById('chat-input').value = transcript;
+                sendMsg(); // Enviar automáticamente al terminar de hablar
+            };
+
+            recognition.onerror = () => { stopMic(); alert("No se pudo detectar el micrófono. Asegúrate de dar permisos."); };
+            recognition.onend = () => { stopMic(); };
+        }
+
+        function toggleMic() {
+            if(!recognition) return alert("Tu navegador no soporta entrada de voz.");
+            if(isListening) { recognition.stop(); }
+            else { recognition.start(); }
+        }
+
+        function stopMic() {
+            isListening = false;
+            document.getElementById('mic-btn').classList.remove('listening');
+            docStatus.innerText = "En línea";
+        }
+
+        async function sendMsg() {
+            const inp = document.getElementById('chat-input');
+            const txt = inp.value.trim();
+            if(!txt) return;
+            
+            chatBox.innerHTML += `<div class="msg user-msg">${txt}</div>`;
+            inp.value = '';
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            const mode = document.getElementById('ai-model').value;
+            const loadingId = 'load-' + Date.now();
+            
+            docStatus.innerText = "Procesando...";
+            docStatus.style.color = "var(--neon-pink)";
+            
+            chatBox.innerHTML += `<div class="msg bot-msg" id="${loadingId}"><span style="opacity:0.6">Analizando consulta...</span></div>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // Simple Local Easter Eggs for context
+            if(txt.toLowerCase().includes('sandylazo1') || txt.toLowerCase().includes('creador')) {
+                typeEffect(loadingId, "¡sandylazo1 es mi creadora! Es una mente brillante detrás del proyecto EpilexBox y Synapse Hub Pro.");
+                return;
+            }
+
+            if(mode === 'wiki') {
+                // Modo Wikipedia Seguro
+                try {
+                    const url = `https://es.wikipedia.org/w/api.php?action=query&format=json&prop=extracts&exchars=350&exintro=true&explaintext=true&origin=*&generator=search&gsrsearch=${encodeURIComponent(txt)}&gsrlimit=1`;
+                    const res = await fetch(url);
+                    const data = await res.json();
+                    let responseText = "Mis bases de datos no encontraron una respuesta precisa. Intenta reformular la pregunta médica o técnica.";
+                    if (data.query && data.query.pages) {
+                        const pages = data.query.pages;
+                        const first = Object.keys(pages)[0];
+                        if (pages[first].extract) responseText = pages[first].extract + " (Fuente: WikiData)";
+                    }
+                    typeEffect(loadingId, responseText);
+                } catch(e) {
+                    typeEffect(loadingId, "Error en la conexión sináptica con la base de datos.");
+                }
+            } else {
+                // Modo Ollama (Requiere localhost:11434 activo)
+                try {
+                    // Intento de conexión local (Ollama API estándar)
+                    const res = await fetch('http://localhost:11434/api/generate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ model: 'gemma:2b', prompt: txt, stream: false })
+                    });
+                    
+                    if(res.ok) {
+                        const data = await res.json();
+                        typeEffect(loadingId, data.response);
+                    } else {
+                        throw new Error("No connect");
+                    }
+                } catch(e) {
+                    typeEffect(loadingId, "⚠️ No se detectó Ollama/Gemma local en el puerto 11434. Asegúrate de tener el motor local encendido, o cambia al 'Modo Seguro (Wikipedia)' en el selector superior.");
+                }
+            }
+        }
+
+        function typeEffect(elementId, text) {
+            const el = document.getElementById(elementId);
+            el.innerHTML = "";
+            let i = 0;
+            const speed = 20; // velocidad de tipeo
+            
+            function typeWriter() {
+                if (i < text.length) {
+                    el.innerHTML += text.charAt(i);
+                    i++;
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                    setTimeout(typeWriter, speed);
+                } else {
+                    docStatus.innerText = "En línea";
+                    docStatus.style.color = "var(--neon-cyan)";
+                }
+            }
+            typeWriter();
+        }
+
+        // Enter key to send
+        document.getElementById('chat-input').addEventListener('keypress', e => { 
+            if(e.key === 'Enter') sendMsg(); 
+        });
+
+    </script>
+</body>
+</html>

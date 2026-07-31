@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Synapse Hub | Neurociencia Interactiva</title>
+    <style>
+        /* === VARIABLES & LIQUID GLASS THEME === */
+        :root {
+            --bg-dark: #030712;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-highlight: rgba(255, 255, 255, 0.15);
+            --text-light: #f8fafc;
+            --text-blue: #38bdf8;
+            --accent-blue: #0284c7;
+            --neon-cyan: #06b6d4;
+            --neon-pink: #ec4899;
+            --success: #10b981;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, sans-serif; }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* --- LIQUID BACKGROUND ANIMATION --- */
+        .ambient-blob {
+            position: fixed; border-radius: 50%; filter: blur(120px); z-index: -1;
+            animation: float 25s infinite alternate ease-in-out;
+        }
+        .blob-1 { top: -10%; left: -10%; width: 50vw; height: 50vw; background: rgba(2, 132, 199, 0.25); }
+        .blob-2 { bottom: -20%; right: -10%; width: 60vw; height: 60vw; background: rgba(6, 182, 212, 0.2); animation-delay: -5s; }
+        .blob-3 { top: 30%; left: 40%; width: 40vw; height: 40vw; background: rgba(236, 72, 153, 0.15); animation-delay: -10s; }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(60px, 60px) scale(1.15); }
+        }
+
+        /* --- GLASSMORPHISM UTILS --- */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+            padding: 24px;
+        }
+
+        header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 20px 40px; position: sticky; top: 0; z-index: 10;
+            background: rgba(3, 7, 18, 0.5); backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        header h1 { font-weight: 300; font-size: 1.8rem; letter-spacing: 2px; display: flex; align-items: center; gap: 10px;}
+        header h1::before { content: ''; display: block; width: 12px; height: 12px; border-radius: 50%; background: var(--neon-cyan); box-shadow: 0 0 10px var(--neon-cyan); }
+        
+        button.lang-btn {
+            background: var(--glass-highlight); color: #fff; border: 1px solid var(--glass-border);
+            padding: 8px 20px; border-radius: 20px; cursor: pointer; transition: all 0.3s; font-weight: 500; letter-spacing: 1px;
+        }
+        button.lang-btn:hover { background: rgba(255, 255, 255, 0.25); box-shadow: 0 0 15px rgba(255,255,255,0.1); }
+
+        .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; display: flex; flex-direction: column; gap: 50px; }
+        h2 { font-weight: 300; color: var(--text-light); margin-bottom: 25px; font-size: 1.6rem; letter-spacing: 1px; display: flex; align-items: center; justify-content: space-between;}
+        h2 span { color: var(--neon-cyan); }
+
+        /* --- NEWS SECTION --- */
+        .news-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+        .news-card {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); cursor: pointer;
+            display: flex; flex-direction: column; gap: 12px; position: relative; overflow: hidden;
+        }
+        .news-card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--accent-blue); transition: width 0.3s; z-index: 0; opacity: 0; }
+        .news-card:hover { transform: translateY(-5px); border-color: var(--text-blue); box-shadow: 0 10px 30px rgba(2, 132, 199, 0.2); }
+        .news-card:hover::before { opacity: 1; }
+        .news-tag { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px; color: var(--neon-cyan); z-index: 1; }
+        .news-title { font-size: 1.1rem; font-weight: 500; color: #fff; line-height: 1.5; z-index: 1; }
+        .news-desc { font-size: 0.9rem; color: #94a3b8; display: none; margin-top: 10px; z-index: 1; line-height: 1.6;}
+        .news-card.expanded .news-desc { display: block; }
+
+        /* --- PREMIUM GAMES GRID --- */
+        .games-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; }
+        .game-thumb {
+            aspect-ratio: 4/3; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            text-align: center; cursor: pointer; transition: all 0.4s; border: 1px solid var(--glass-border);
+            border-radius: 20px; position: relative; overflow: hidden;
+            background: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(0,0,0,0.2));
+        }
+        .game-thumb::after { content: ''; position: absolute; width: 100%; height: 100%; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%); opacity: 0; transition: opacity 0.3s; }
+        .game-thumb:hover { border-color: var(--neon-cyan); transform: scale(1.03) translateY(-5px); box-shadow: 0 15px 35px rgba(0,0,0,0.5), 0 0 20px rgba(6, 182, 212, 0.2); z-index: 2; }
+        .game-thumb:hover::after { opacity: 1; }
+        .game-icon { font-size: 2.2rem; margin-bottom: 12px; font-weight: 200; color: var(--text-light); text-shadow: 0 0 15px rgba(255,255,255,0.4); z-index: 1; } 
+        .game-name { font-size: 1.05rem; font-weight: 500; color: #fff; letter-spacing: 0.5px; z-index: 1; padding: 0 10px; }
+        .game-lvl { font-size: 0.75rem; color: var(--neon-cyan); margin-top: 8px; text-transform: uppercase; letter-spacing: 2px; z-index: 1; }
+
+        /* --- CHATBOT --- */
+        .chat-container { display: flex; flex-direction: column; gap: 15px; height: 450px; }
+        .chat-box { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding-right: 15px; }
+        .msg { padding: 14px 20px; border-radius: 20px; max-width: 80%; font-size: 0.95rem; line-height: 1.6; letter-spacing: 0.3px; }
+        .user-msg { align-self: flex-end; background: linear-gradient(135deg, var(--accent-blue), var(--text-blue)); color: #fff; border-bottom-right-radius: 4px; box-shadow: 0 4px 15px rgba(2, 132, 199, 0.3); }
+        .bot-msg { align-self: flex-start; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-bottom-left-radius: 4px; color: #e2e8f0; }
+        
+        .chat-input-area { display: flex; gap: 12px; margin-top: 10px;}
+        .chat-input-area input {
+            flex: 1; background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border);
+            color: #fff; padding: 16px 24px; border-radius: 30px; outline: none; transition: all 0.3s; font-size: 0.95rem;
+        }
+        .chat-input-area input:focus { border-color: var(--neon-cyan); box-shadow: 0 0 15px rgba(6, 182, 212, 0.2); }
+        .chat-input-area button {
+            background: var(--text-blue); color: #030712; border: none; padding: 0 30px;
+            border-radius: 30px; font-weight: 600; cursor: pointer; transition: all 0.3s; letter-spacing: 1px;
+        }
+        .chat-input-area button:hover { background: var(--neon-cyan); box-shadow: 0 0 20px rgba(6, 182, 212, 0.4); }
+
+        /* --- MODAL PLAYER (HIGH QUALITY) --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(3, 7, 18, 0.85); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            display: none; justify-content: center; align-items: center; z-index: 100;
+        }
+        .modal-content { width: 95%; max-width: 800px; max-height: 90vh; overflow-y: auto; position: relative; display: flex; flex-direction: column; align-items: center; padding: 40px; border-radius: 30px; border-color: rgba(255,255,255,0.15);}
+        .close-btn { position: absolute; top: 25px; right: 30px; background: none; border: none; color: #94a3b8; font-size: 2rem; cursor: pointer; transition: color 0.3s; font-weight: 200; }
+        .close-btn:hover { color: #fff; }
+        
+        .game-header { text-align: center; margin-bottom: 30px; width: 100%; border-bottom: 1px solid var(--glass-border); padding-bottom: 20px;}
+        #modal-title { font-size: 2rem; font-weight: 400; color: #fff; margin-bottom: 10px; letter-spacing: 1px; }
+        .level-indicator { display: inline-block; background: rgba(6, 182, 212, 0.1); border: 1px solid var(--neon-cyan); color: var(--neon-cyan); padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; }
+
+        #game-render-area { width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 300px; }
+
+        /* --- GAME 1: SYNAPSE OVERDRIVE (NEON NODES) --- */
+        .synapse-container { display: flex; flex-direction: column; align-items: center; gap: 30px; width: 100%; }
+        .synapse-grid { display: grid; gap: 20px; padding: 30px; background: rgba(0,0,0,0.4); border-radius: 24px; border: 1px solid var(--glass-border); }
+        .syn-node { 
+            width: 60px; height: 60px; border-radius: 50%; border: 2px solid #334155; 
+            cursor: pointer; position: relative; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            background: rgba(255,255,255,0.02); display: flex; justify-content: center; align-items: center;
+        }
+        .syn-node::before { content: ''; position: absolute; width: 12px; height: 12px; border-radius: 50%; background: #334155; transition: background 0.3s; }
+        .syn-node::after { 
+            content: ''; position: absolute; top: 50%; left: 50%; width: 30px; height: 3px; 
+            background: #334155; transform-origin: 0 50%; transition: background 0.3s; margin-top: -1.5px;
+        }
+        .syn-node:hover { border-color: #64748b; background: rgba(255,255,255,0.05); }
+        .syn-node.active { border-color: var(--neon-cyan); box-shadow: 0 0 15px rgba(6, 182, 212, 0.4), inset 0 0 10px rgba(6, 182, 212, 0.2); }
+        .syn-node.active::before { background: var(--neon-cyan); box-shadow: 0 0 10px var(--neon-cyan); }
+        .syn-node.active::after { background: var(--neon-cyan); box-shadow: 0 0 8px var(--neon-cyan); }
+        
+        .action-btn { background: var(--glass-highlight); border: 1px solid var(--neon-cyan); color: var(--neon-cyan); padding: 16px 40px; border-radius: 30px; font-size: 1.1rem; font-weight: 600; letter-spacing: 2px; cursor: pointer; transition: all 0.3s; text-transform: uppercase; }
+        .action-btn:hover { background: var(--neon-cyan); color: #000; box-shadow: 0 0 25px rgba(6, 182, 212, 0.5); }
+
+        /* --- GAME 2: CORTEX MAZE --- */
+        .maze-container { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+        .maze-grid { display: grid; gap: 2px; background: rgba(255,255,255,0.05); padding: 4px; border-radius: 12px; border: 1px solid var(--glass-border); }
+        .maze-cell { width: 35px; height: 35px; background: rgba(0,0,0,0.3); border-radius: 6px; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; transition: background 0.2s;}
+        .maze-cell.wall { background: rgba(236, 72, 153, 0.2); border: 1px solid var(--neon-pink); }
+        .maze-cell.player { background: var(--neon-cyan); box-shadow: 0 0 15px var(--neon-cyan); border-radius: 50%; width: 25px; height: 25px; margin: 5px; }
+        .maze-cell.target { background: var(--success); box-shadow: 0 0 15px var(--success); border-radius: 4px; width: 25px; height: 25px; margin: 5px; animation: pulse 1.5s infinite;}
+        
+        @keyframes pulse { 0% { transform: scale(0.9); opacity: 0.8; } 50% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(0.9); opacity: 0.8; } }
+
+        .controls-pad { display: grid; grid-template-columns: 60px 60px 60px; gap: 10px; margin-top: 10px; }
+        .ctrl-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: #fff; height: 60px; border-radius: 16px; font-size: 1.5rem; cursor: pointer; transition: all 0.2s; display: flex; justify-content: center; align-items: center; }
+        .ctrl-btn:hover { background: rgba(255,255,255,0.15); border-color: var(--neon-cyan); color: var(--neon-cyan); }
+        .ctrl-up { grid-column: 2; grid-row: 1; } .ctrl-left { grid-column: 1; grid-row: 2; } .ctrl-down { grid-column: 2; grid-row: 2; } .ctrl-right { grid-column: 3; grid-row: 2; }
+
+        /* --- GAME 3: MEMORY MATRIX --- */
+        .mem-grid { display: grid; gap: 15px; perspective: 1000px; }
+        .mem-card { width: 70px; height: 70px; position: relative; transform-style: preserve-3d; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; }
+        .mem-card.flipped { transform: rotateY(180deg); }
+        .mem-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 12px; display: flex; justify-content: center; align-items: center; font-size: 1.8rem; font-weight: bold; border: 1px solid var(--glass-border); }
+        .mem-front { background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(0,0,0,0.3)); color: transparent; }
+        .mem-front::after { content: '✦'; color: rgba(255,255,255,0.2); font-size: 1.2rem; }
+        .mem-back { background: rgba(6, 182, 212, 0.15); transform: rotateY(180deg); color: #fff; border-color: var(--neon-cyan); box-shadow: 0 0 15px rgba(6, 182, 212, 0.2); }
+        .mem-card.matched .mem-back { background: rgba(16, 185, 129, 0.2); border-color: var(--success); box-shadow: 0 0 15px rgba(16, 185, 129, 0.3); color: var(--success); }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-blue); }
+    </style>
+</head>
+<body>
+
+    <div class="ambient-blob blob-1"></div>
+    <div class="ambient-blob blob-2"></div>
+    <div class="ambient-blob blob-3"></div>
+
+    <header>
+        <h1 id="app-title">Synapse Hub</h1>
+        <button class="lang-btn" onclick="toggleLang()" id="btn-lang">EN / ES</button>
+    </header>
+
+    <div class="container">
+        
+        <section>
+            <h2 id="news-title"><span>Novedad</span> Científica</h2>
+            <div class="news-grid" id="news-container"></div>
+        </section>
+
+        <section>
+            <h2 id="games-title"><span>Laboratorio</span> Cognitivo</h2>
+            <div class="games-grid glass-panel" id="games-container"></div>
+        </section>
+
+        <section>
+            <h2 id="bot-title"><span>Asistente</span> NeuroBot</h2>
+            <div class="glass-panel chat-container">
+                <div class="chat-box" id="chat-box"></div>
+                <div class="chat-input-area">
+                    <input type="text" id="chat-input" placeholder="Analizar estructura cerebral, sinapsis...">
+                    <button onclick="sendMsg()" id="btn-send">Procesar</button>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <div class="modal-overlay" id="game-modal">
+        <div class="glass-panel modal-content">
+            <button class="close-btn" onclick="closeGame()">×</button>
+            <div class="game-header">
+                <h2 id="modal-title" style="margin-bottom: 15px; justify-content: center;">Nombre del Juego</h2>
+                <div class="level-indicator" id="modal-level">Nivel 1 / 6</div>
+            </div>
+            <div id="game-render-area"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. CORE DATA & I18N ---
+        let lang = 'es';
+        
+        const uiText = {
+            es: {
+                appTitle: "Synapse Hub", newsTitle: "<span>Novedades</span> Científicas", gamesTitle: "<span>Laboratorio</span> Cognitivo",
+                botTitle: "<span>Asistente</span> NeuroBot", btnSend: "Procesar", placeholder: "Analizar estructura, señales, BCI...",
+                botInit: "Sistema biométrico en línea. Motor NLP activado. Ingrese parámetro de consulta neurológica.",
+                botErr: "[!] Parámetro denegado. Protocolo restringido a neurociencia anatómica y fisiológica.",
+                botDef: "Datos insuficientes. Sugerencia de búsqueda: 'Plasticidad', 'Corteza Motora', 'Neurotransmisor'.",
+                lvlText: "Nivel",
+                btnExecute: "Iniciar Disparo",
+                gameWin: "¡Simulación Completada! Conexión neuronal establecida."
+            },
+            en: {
+                appTitle: "Synapse Hub", newsTitle: "<span>Scientific</span> Updates", gamesTitle: "<span>Cognitive</span> Lab",
+                botTitle: "<span>NeuroBot</span> Assistant", btnSend: "Process", placeholder: "Analyze structure, signals, BCI...",
+                botInit: "Biometric system online. NLP Engine active. Enter neurological query parameter.",
+                botErr: "[!] Parameter denied. Protocol restricted to anatomical and physiological neuroscience.",
+                botDef: "Insufficient data. Search suggestions: 'Plasticity', 'Motor Cortex', 'Neurotransmitter'.",
+                lvlText: "Level",
+                btnExecute: "Execute Fire",
+                gameWin: "Simulation Complete! Neural connection established."
+            }
+        };
+
+        const newsData = [
+            { tag: "BCI Tech", es: {t: "Decodificación Motora Avanzada", d: "Nuevo algoritmo permite a pacientes tetrapléjicos trazar texto a 90 caracteres por minuto leyendo señales de la corteza motora."}, en: {t: "Advanced Motor Decoding", d: "New algorithm allows tetraplegic patients to trace text at 90 chars per minute by reading motor cortex signals."} },
+            { tag: "Fisiología", es: {t: "Replay Neuronal Acelerado", d: "Confirmado: Durante el sueño NREM, el hipocampo reproduce patrones eléctricos diurnos para consolidar la memoria a largo plazo."}, en: {t: "Accelerated Neural Replay", d: "Confirmed: During NREM sleep, the hippocampus replays diurnal electrical patterns to consolidate long-term memory."} },
+            { tag: "Optogenética", es: {t: "Restauración Visual Cortical", d: "Proteínas fotosensibles inyectadas en la retina permiten recuperar percepción de luz en pacientes con daño ocular severo."}, en: {t: "Cortical Visual Restoration", d: "Photosensitive proteins injected into the retina allow recovery of light perception in severe ocular damage."} }
+        ];
+
+        // 10 Premium Games Definition (Mapped to 3 polished mechanics)
+        // Mechanics: 1 = Synapse (Rot), 2 = Maze (Path), 3 = Memory (Cards)
+        const premiumGames = [
+            { id: 0, mech: 1, icon: '◈', es: "Synapse Overdrive", en: "Synapse Overdrive" },
+            { id: 1, mech: 2, icon: '◲', es: "Córtex Navigator", en: "Cortex Navigator" },
+            { id: 2, mech: 3, icon: '◫', es: "Matrix de Memoria", en: "Memory Matrix" },
+            { id: 3, mech: 1, icon: '◎', es: "Enlace Dendrítico", en: "Dendritic Link" },
+            { id: 4, mech: 2, icon: '▤', es: "Laberinto Frontal", en: "Frontal Labyrinth" },
+            { id: 5, mech: 3, icon: '◧', es: "Eco Cognitivo", en: "Cognitive Echo" },
+            { id: 6, mech: 1, icon: '◉', es: "Pulso Eléctrico", en: "Electrical Pulse" },
+            { id: 7, mech: 2, icon: '▣', es: "Ruta del Axón", en: "Axon Pathway" },
+            { id: 8, mech: 3, icon: '◩', es: "Replicador NREM", en: "NREM Replicator" },
+            { id: 9, mech: 1, icon: '◆', es: "Sobrecarga de Iones", en: "Ion Overload" }
+        ];
+
+        // --- 2. RENDER FUNCTIONS ---
+        function toggleLang() {
+            lang = lang === 'es' ? 'en' : 'es';
+            document.getElementById('app-title').innerText = uiText[lang].appTitle;
+            document.getElementById('news-title').innerHTML = uiText[lang].newsTitle;
+            document.getElementById('games-title').innerHTML = uiText[lang].gamesTitle;
+            document.getElementById('bot-title').innerHTML = uiText[lang].botTitle;
+            document.getElementById('btn-send').innerText = uiText[lang].btnSend;
+            document.getElementById('chat-input').placeholder = uiText[lang].placeholder;
+            
+            renderNews();
+            renderGames();
+            document.getElementById('chat-box').innerHTML = `<div class="msg bot-msg">${uiText[lang].botInit}</div>`;
+        }
+
+        function renderNews() {
+            const container = document.getElementById('news-container');
+            container.innerHTML = '';
+            newsData.forEach((n) => {
+                const card = document.createElement('div');
+                card.className = 'glass-panel news-card';
+                card.onclick = () => card.classList.toggle('expanded');
+                card.innerHTML = `<span class="news-tag">${n.tag}</span><div class="news-title">${n[lang].t}</div><div class="news-desc">${n[lang].d}</div>`;
+                container.appendChild(card);
+            });
+        }
+
+        function renderGames() {
+            const container = document.getElementById('games-container');
+            container.innerHTML = '';
+            premiumGames.forEach((g) => {
+                const div = document.createElement('div');
+                div.className = 'game-thumb';
+                div.onclick = () => initGameFlow(g);
+                div.innerHTML = `<div class="game-icon">${g.icon}</div><div class="game-name">${g[lang]}</div><div class="game-lvl">6 ${uiText[lang].lvlText}s</div>`;
+                container.appendChild(div);
+            });
+        }
+
+        // --- 3. CHATBOT NLP ---
+        const kb = {
+            es: [ {k:["sinapsis","espacio"], r:"La sinapsis es la unión intercelular donde se transmiten neurotransmisores mediante exocitosis inducida por iones de Calcio."}, {k:["bci","interfaz"], r:"Las BCI (Brain-Computer Interfaces) decodifican oscilaciones eléctricas (ondas motoras) mediante matrices matemáticas para controlar actuadores externos."} ],
+            en: [ {k:["synapse","space"], r:"The synapse is the intercellular junction where neurotransmitters are transmitted via exocytosis induced by Calcium ions."}, {k:["bci","interface"], r:"BCIs (Brain-Computer Interfaces) decode electrical oscillations (motor waves) using mathematical matrices to control external actuators."} ]
+        };
+        const forbid = ["politica", "política", "genero", "género", "sexo", "sexualidad", "politics", "gender", "sexuality"];
+        
+        function sendMsg() {
+            const inp = document.getElementById('chat-input');
+            const txt = inp.value.trim();
+            if(!txt) return;
+            const box = document.getElementById('chat-box');
+            box.innerHTML += `<div class="msg user-msg">${txt}</div>`;
+            inp.value = '';
+
+            setTimeout(() => {
+                let res = uiText[lang].botDef;
+                let low = txt.toLowerCase();
+                if(forbid.some(w => low.includes(w))) res = uiText[lang].botErr;
+                else {
+                    let best = null, max = 0;
+                    kb[lang].forEach(e => { let score = e.k.filter(kw => low.includes(kw)).length; if(score>max){max=score; best=e;} });
+                    if(best) res = best.r;
+                }
+                box.innerHTML += `<div class="msg bot-msg">${res}</div>`;
+                box.scrollTop = box.scrollHeight;
+            }, 500);
+        }
+        document.getElementById('chat-input').addEventListener('keypress', e => { if(e.key === 'Enter') sendMsg(); });
+
+        // --- 4. ADVANCED GAME ENGINE (6 LEVELS FLOW) ---
+        let currentGameData = null;
+        let currentLevel = 1;
+        const maxLevel = 6;
+        let gameState = {};
+
+        function initGameFlow(game) {
+            currentGameData = game;
+            currentLevel = 1;
+            document.getElementById('game-modal').style.display = 'flex';
+            document.getElementById('modal-title').innerText = game[lang];
+            loadLevel();
+        }
+
+        function closeGame() { document.getElementById('game-modal').style.display = 'none'; }
+
+        function loadLevel() {
+            document.getElementById('modal-level').innerText = `${uiText[lang].lvlText} ${currentLevel} / ${maxLevel}`;
+            const area = document.getElementById('game-render-area');
+            area.style.opacity = 0;
+            
+            setTimeout(() => {
+                area.innerHTML = '';
+                if(currentGameData.mech === 1) buildSynapseOverdrive(area, currentLevel);
+                if(currentGameData.mech === 2) buildCortexMaze(area, currentLevel);
+                if(currentGameData.mech === 3) buildMemoryMatrix(area, currentLevel);
+                area.style.transition = 'opacity 0.4s';
+                area.style.opacity = 1;
+            }, 300);
+        }
+
+        function completeLevel() {
+            if(currentLevel < maxLevel) {
+                currentLevel++;
+                loadLevel();
+            } else {
+                setTimeout(() => {
+                    area = document.getElementById('game-render-area');
+                    area.innerHTML = `<div style="text-align:center; color:var(--success); font-size:1.5rem; font-weight:300;">✨<br><br>${uiText[lang].gameWin}</div>`;
+                    document.getElementById('modal-level').innerText = "CLEARED";
+                    document.getElementById('modal-level').style.borderColor = "var(--success)";
+                    document.getElementById('modal-level').style.color = "var(--success)";
+                }, 400);
+            }
+        }
+
+        // --- MECHANIC 1: SYNAPSE OVERDRIVE ---
+        // Rotate nodes to 0 degrees to align lines
+        function buildSynapseOverdrive(area, lvl) {
+            // Level 1: 4 nodes, Level 6: 14 nodes
+            const nodeCount = 2 + (lvl * 2);
+            // Cols logic: lvl1-2 (3 cols), lvl3-4 (4 cols), lvl5-6 (5 cols)
+            const cols = lvl < 3 ? 3 : (lvl < 5 ? 4 : 5);
+            
+            gameState = { nodes: Array.from({length: nodeCount}, () => Math.floor(Math.random() * 3 + 1) * 90) };
+            
+            const div = document.createElement('div'); div.className = 'synapse-container';
+            div.innerHTML = `
+                <div class="synapse-grid" id="syn-grid" style="grid-template-columns: repeat(${cols}, 60px);"></div>
+                <button class="action-btn" onclick="checkSynapse()">${uiText[lang].btnExecute} ⚡</button>
+            `;
+            area.appendChild(div);
+            drawSynapse();
+        }
+        function drawSynapse() {
+            const grid = document.getElementById('syn-grid'); grid.innerHTML = '';
+            gameState.nodes.forEach((ang, i) => {
+                const node = document.createElement('div');
+                node.className = `syn-node ${ang === 0 ? 'active' : ''}`;
+                node.style.transform = `rotate(${ang}deg)`;
+                node.onclick = () => { gameState.nodes[i] = (gameState.nodes[i] + 90) % 360; drawSynapse(); };
+                grid.appendChild(node);
+            });
+        }
+        function checkSynapse() {
+            if(gameState.nodes.every(a => a === 0)) completeLevel();
+            else {
+                const btn = document.querySelector('.action-btn');
+                btn.style.borderColor = 'var(--neon-pink)'; btn.style.color = 'var(--neon-pink)';
+                setTimeout(() => { btn.style.borderColor = 'var(--neon-cyan)'; btn.style.color = 'var(--neon-cyan)'; }, 500);
+            }
+        }
+
+        // --- MECHANIC 2: CORTEX MAZE ---
+        // Grid pathfinding. Navigate from top-left to bottom-right avoiding walls.
+        function buildCortexMaze(area, lvl) {
+            const size = 3 + lvl; // Lvl1 = 4x4, Lvl6 = 9x9
+            const wallsCount = Math.floor((size * size) * 0.15); // 15% walls
+            
+            // Generate valid walls (not blocking 0,0 or end)
+            let walls = [];
+            for(let i=0; i<wallsCount; i++) {
+                let wx = Math.floor(Math.random()*size); let wy = Math.floor(Math.random()*size);
+                if((wx!==0 || wy!==0) && (wx!==size-1 || wy!==size-1)) walls.push(`${wx},${wy}`);
+            }
+            
+            gameState = { size: size, px: 0, py: 0, tx: size-1, ty: size-1, walls: walls };
+            
+            const div = document.createElement('div'); div.className = 'maze-container';
+            div.innerHTML = `
+                <div class="maze-grid" id="mz-grid" style="grid-template-columns: repeat(${size}, 35px);"></div>
+                <div class="controls-pad">
+                    <button class="ctrl-btn ctrl-up" onclick="moveMaze(0,-1)">▲</button>
+                    <button class="ctrl-btn ctrl-left" onclick="moveMaze(-1,0)">◀</button>
+                    <button class="ctrl-btn ctrl-down" onclick="moveMaze(0,1)">▼</button>
+                    <button class="ctrl-btn ctrl-right" onclick="moveMaze(1,0)">▶</button>
+                </div>
+            `;
+            area.appendChild(div);
+            drawMaze();
+        }
+        function moveMaze(dx, dy) {
+            let nx = gameState.px + dx, ny = gameState.py + dy;
+            if(nx>=0 && nx<gameState.size && ny>=0 && ny<gameState.size && !gameState.walls.includes(`${nx},${ny}`)) {
+                gameState.px = nx; gameState.py = ny; drawMaze();
+                if(nx === gameState.tx && ny === gameState.ty) completeLevel();
+            }
+        }
+        function drawMaze() {
+            const grid = document.getElementById('mz-grid'); grid.innerHTML = '';
+            for(let y=0; y<gameState.size; y++) {
+                for(let x=0; x<gameState.size; x++) {
+                    const c = document.createElement('div'); c.className = 'maze-cell';
+                    if(gameState.walls.includes(`${x},${y}`)) c.classList.add('wall');
+                    else if(x===gameState.px && y===gameState.py) { c.classList.add('player'); }
+                    else if(x===gameState.tx && y===gameState.ty) { c.classList.add('target'); }
+                    grid.appendChild(c);
+                }
+            }
+        }
+
+        // --- MECHANIC 3: MEMORY MATRIX ---
+        // Flip cards to find matching pairs
+        const memSyms = ['α', 'β', 'γ', 'δ', 'ε', 'ζ', 'η', 'θ', 'λ', 'μ', 'π', 'σ'];
+        function buildMemoryMatrix(area, lvl) {
+            const pairs = 2 + lvl; // Lvl1 = 3 pairs (6 cards), Lvl6 = 8 pairs (16 cards)
+            let deck = memSyms.slice(0, pairs);
+            deck = [...deck, ...deck].sort(() => Math.random() - 0.5);
+            
+            const cols = pairs > 6 ? 4 : 3;
+            gameState = { deck: deck, flipped: [], matched: [] };
+            
+            const div = document.createElement('div');
+            div.innerHTML = `<div class="mem-grid" id="mm-grid" style="grid-template-columns: repeat(${cols}, 70px);"></div>`;
+            area.appendChild(div);
+            drawMemory();
+        }
+        function flipCard(i) {
+            if(gameState.flipped.length < 2 && !gameState.flipped.includes(i) && !gameState.matched.includes(i)) {
+                gameState.flipped.push(i); drawMemory();
+                if(gameState.flipped.length === 2) {
+                    let [i1, i2] = gameState.flipped;
+                    if(gameState.deck[i1] === gameState.deck[i2]) {
+                        gameState.matched.push(i1, i2);
+                        gameState.flipped = [];
+                        setTimeout(() => { drawMemory(); if(gameState.matched.length === gameState.deck.length) completeLevel(); }, 300);
+                    } else {
+                        setTimeout(() => { gameState.flipped = []; drawMemory(); }, 800);
+                    }
+                }
+            }
+        }
+        function drawMemory() {
+            const grid = document.getElementById('mm-grid'); grid.innerHTML = '';
+            gameState.deck.forEach((val, i) => {
+                const isF = gameState.flipped.includes(i) || gameState.matched.includes(i);
+                const isM = gameState.matched.includes(i);
+                
+                const card = document.createElement('div');
+                card.className = `mem-card ${isF ? 'flipped' : ''} ${isM ? 'matched' : ''}`;
+                card.innerHTML = `<div class="mem-face mem-front"></div><div class="mem-face mem-back">${val}</div>`;
+                card.onclick = () => flipCard(i);
+                grid.appendChild(card);
+            });
+        }
+
+        // --- INIT ---
+        window.onload = () => {
+            renderNews();
+            renderGames();
+            document.getElementById('chat-box').innerHTML = `<div class="msg bot-msg">${uiText[lang].botInit}</div>`;
+        };
+    </script>
+</body>
+</html>
